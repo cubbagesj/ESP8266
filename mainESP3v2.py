@@ -1,45 +1,64 @@
 # mainESP3.py - esp8266 board
 #
 # Master program for ESP3
-#    reads a DHT22 temperature and humidity sensor and
+#    reads an MCP9808 I2C temperature sensor and
 #    the garage door sensors. It then
 #    send the data out using a UDP packet to the local network
 #
 # Duplicated from mainESP2
+#
+# This board is using circuitpython instead of micropython
 #
 # 1/27/2018 - sjc
 #
 #
 
 # imports needed
-import dht
-import machine
+import board
+import busio
+import adafruit_mcp9808
 import time
 import socket
 import network
+from digitalio import DigitalInOut, Direction, Pull
+
 
 # Some useful values
 dhtPin = 13    # DHT wired to pin 13
 loopTime = 1  # Short pause single measurements
 count = 1       # single measurement
 
+ssid = 'cubnet'
+password = 'almond11'
 
 # For DHT22 - This sensor does not seem too accurate
 
-# Set up object for reading sensors
+# Set up object for reading temp sensor
 
-dht22 = dht.DHT22(machine.Pin(dhtPin))
-dhtTempUnit = 'C'
-dhtRHUnit = 'RH'
-dhtTempId = '03001'
-dhtHumId = '03002'
+i2c = busio.I2C(board.SCL, board.SDA)
+mcp = adafruit_mcp9808.MCP9808(i2c)
+
+mcpTempUnit = 'C'
+mcpTempId = '03001'
+
+door1Unit = 'Bool'
+door1ID = '03002'
 
 # Setup the door sensorimport machine
-door1 = machine.Pin(12, machine.Pin.IN, machine.Pin.PULL_UP)
+door1 = DigitalInOut(board.GPIO12)
+door1.direction = Direction.INPUT
+door1.pull = Pull.UP
 
-# set up socket
-# Get local IP address
+# set up networking
 wlan = network.WLAN(network.STA_IF)
+if not wlan.isconnected():
+    wlan.active(True)
+    wlan.connect(ssid, password)
+    while not wlan.isconnected():
+        pass
+print("Connected! IP = ", wlan.ifconfig()[0])
+
+# Get local IP address
 hostip = wlan.ifconfig()[0]
 port = 10000
 
@@ -91,21 +110,18 @@ while True:
             # To smooth spikes, average count measurements and then send
             # Initialize measurements
 
-            dhttempC = 0.0
-            dhthumidity = 0.0
+            mcptempC = 0.0
 
             for i in range(count):
 
                 try:
 
-                    # Read DHT22 - reads in C and RH
-                    dht22.measure()
-
-                    dhttempC += dht22.temperature()
-                    dhthumidity += dht22.humidity()
+                    # Read mcp9808 - reads in C
+   
+                    mcptempC += mcp.temperature
 
                     # Read the door sensor
-                    d1value = door1.value()
+                    d1Value = door1.value()
                     
                 except:
                     print('Error')
@@ -115,11 +131,11 @@ while True:
             try:
 
                 # Print to terminal (if connected) for debugging
-                print("DHTTemp: %f  DHTHumidity: %f " % (dhttempC/count, dhthumidity/count))
+                print("mcpTemp: %f " % (mcptempC/count))
 
-                message = message + "{:s}:{:3.2f}:{:s}:".format(dhtTempId,dhttempC/count,dhtTempUnit)
-                message = message + "{:s}:{:3.2f}:{:s}:".format(dhtHumId, dhthumidity/count, dhtRHUnit)
-
+                message = message + "{:s}:{:3.2f}:{:s}:".format(mcpTempId,mcptempC/count,mcpTempUnit)
+                messgae = message + "{:s}:{:3.2f}:{:s}:".format(door1ID, door1Value, door1Unit)
+                
             except:
                 message = "Error"
                 pass
