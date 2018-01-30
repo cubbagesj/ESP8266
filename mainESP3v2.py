@@ -121,7 +121,7 @@ while True:
                     mcptempC += mcp.temperature
 
                     # Read the door sensor
-                    d1Value = door1.value()
+                    door1Value = door1.value
                     
                 except:
                     print('Error')
@@ -132,9 +132,10 @@ while True:
 
                 # Print to terminal (if connected) for debugging
                 print("mcpTemp: %f " % (mcptempC/count))
+                print("door1Value: %f " % (door1Value))
 
                 message = message + "{:s}:{:3.2f}:{:s}:".format(mcpTempId,mcptempC/count,mcpTempUnit)
-                messgae = message + "{:s}:{:3.2f}:{:s}:".format(door1ID, door1Value, door1Unit)
+                message = message + "{:s}:{:d}:{:s}".format(door1ID, door1Value, door1Unit)
                 
             except:
                 message = "Error"
