@@ -44,10 +44,17 @@ mcpTempId = '03001'
 door1Unit = 'Bool'
 door1ID = '03002'
 
-# Setup the door sensorimport machine
+door2Unit = 'Bool'
+door2ID = '03003'
+
+# Setup the door sensors
 door1 = DigitalInOut(board.GPIO12)
 door1.direction = Direction.INPUT
 door1.pull = Pull.UP
+
+door2 = DigitalInOut(board.GPIO13)
+door2.direction = Direction.INPUT
+door2.pull = Pull.UP
 
 # set up networking
 wlan = network.WLAN(network.STA_IF)
@@ -120,8 +127,9 @@ while True:
    
                     mcptempC += mcp.temperature
 
-                    # Read the door sensor
-                    door1Value = door1.value
+                    # Read the door sensors
+                    door1Value = door1.value                    
+                    door2Value = door2.value
                     
                 except:
                     print('Error')
@@ -133,9 +141,11 @@ while True:
                 # Print to terminal (if connected) for debugging
                 print("mcpTemp: %f " % (mcptempC/count))
                 print("door1Value: %f " % (door1Value))
+                print("door2Value: %f " % (door2Value))
 
                 message = message + "{:s}:{:3.2f}:{:s}:".format(mcpTempId,mcptempC/count,mcpTempUnit)
-                message = message + "{:s}:{:d}:{:s}".format(door1ID, door1Value, door1Unit)
+                message = message + "{:s}:{:d}:{:s}:".format(door1ID, door1Value, door1Unit)
+                message = message + "{:s}:{:d}:{:s}".format(door2ID, door2Value, door2Unit)
                 
             except:
                 message = "Error"
