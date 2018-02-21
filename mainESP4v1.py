@@ -24,6 +24,8 @@ from digitalio import DigitalInOut, Direction, Pull
 # Some useful values
 ssid = 'cubnet'
 password = 'almond11'
+count = 1
+loopTime = 1
 
 
 door1Unit = 'Bool'
@@ -113,7 +115,7 @@ while True:
                 # Print to terminal (if connected) for debugging
                 print("door1Value: %f " % (door1Value))
 
-                message = message + "{:s}:{:d}:{:s}".format(door1ID, door1Value, door1Unit)                message = message + "{:s}:{:d}:{:s}".format(door2ID, door2Value, door2Unit)
+                message = message + "{:s}:{:d}:{:s}".format(door1ID, door1Value, door1Unit)
 
             except:
                 message = "Error"
